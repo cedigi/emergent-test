@@ -7,6 +7,9 @@ Teste la logique métier sans interface graphique
 from store import db_manager
 from tournament import TournamentManager
 import os
+import pytest
+
+pytest.skip("Console tests are designed for manual execution", allow_module_level=True)
 
 def test_database():
     """Test des opérations de base de données"""

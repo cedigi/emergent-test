@@ -18,7 +18,10 @@ class DatabaseManager:
     
     def get_connection(self):
         """Retourne une connexion à la base de données"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(
+            self.db_path,
+            uri=self.db_path.startswith("file:")
+        )
         conn.row_factory = sqlite3.Row  # Pour accéder aux colonnes par nom
         return conn
     
@@ -125,10 +128,14 @@ class DatabaseManager:
             conn.commit()
 
     def delete_tournament(self, tournament_id: str):
+        codex/ajouter-des-tests-pour-delete_team,-delete_tournament,-updat
+        """Supprime un tournoi et toutes les données associées"""
+
         codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
         """Supprime un tournoi ainsi que ses équipes et matchs"""
 
         """Supprime un tournoi et toutes les donn\xC3\xA9es associ\xC3\xA9es"""
+        main
         main
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -194,6 +201,40 @@ class DatabaseManager:
                 ''', values)
                 conn.commit()
 
+        codex/ajouter-des-tests-pour-delete_team,-delete_tournament,-updat
+    def update_team(self, team_id: str, name: Optional[str] = None,
+                    players: Optional[List[str]] = None):
+        """Met à jour le nom ou la liste des joueurs d'une équipe"""
+        updates = []
+        values = []
+        if name is not None:
+            updates.append("name = ?")
+            values.append(name)
+        if players is not None:
+            updates.append("players = ?")
+            values.append(json.dumps(players))
+        if not updates:
+            return
+        values.append(team_id)
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"UPDATE teams SET {', '.join(updates)} WHERE id = ?",
+                values
+            )
+            conn.commit()
+
+    def delete_team(self, team_id: str):
+        """Supprime une équipe et ses matchs associés"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'DELETE FROM matches WHERE team1_id = ? OR team2_id = ?',
+                (team_id, team_id)
+            )
+            cursor.execute('DELETE FROM teams WHERE id = ?', (team_id,))
+            conn.commit()
+
         codex/ajouter-méthode-update_team-à-databasemanager
     def update_team(self, team_id: str, name: str = None, players: List[str] = None):
         """Met à jour le nom et/ou la liste des joueurs d'une équipe"""
@@ -245,6 +286,7 @@ class DatabaseManager:
             conn.commit()
         main
         main
+>       main
     
     # CRUD pour Matchs
     def create_match(self, tournament_id: str, round_number: int, 
@@ -288,6 +330,16 @@ class DatabaseManager:
             ''', (team1_score, team2_score, match_id))
             conn.commit()
 
+        codex/ajouter-des-tests-pour-delete_team,-delete_tournament,-updat
+    def update_match_court(self, match_id: str, court_number: int):
+        """Met à jour le terrain d'un match"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'UPDATE matches SET court_number = ? WHERE id = ?',
+                (court_number, match_id)
+            )
+
         codex/implement-update_match_court-method
     def update_match_court(self, match_id: str, court_number: int):
         """Met à jour le numéro de terrain d'un match"""
@@ -304,6 +356,7 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM matches WHERE id = ?', (match_id,))
+        main
         main
             conn.commit()
     
