@@ -2,7 +2,8 @@
 Interface graphique principale de Pétanque Manager
 Gère la fenêtre principale et les onglets
 """
-
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
@@ -155,19 +156,20 @@ class MainWindow:
                 self.tournament_combo.current(0)
                 self.current_tournament_id = tournaments[0]['id']
                 self.on_tournament_change()
-    
+
     def delete_tournament(self):
         """Supprime le tournoi actuel"""
         if not self.current_tournament_id:
             messagebox.showwarning("Attention", "Aucun tournoi sélectionné")
             return
-        
+
         tournament = db_manager.get_tournament(self.current_tournament_id)
         if tournament:
-            response = messagebox.askyesno("Confirmation",
-                                         f"Êtes-vous sûr de vouloir supprimer le tournoi '{tournament['name']}'?")
+            response = messagebox.askyesno(
+                "Confirmation",
+                f"Êtes-vous sûr de vouloir supprimer le tournoi '{tournament['name']}'?"
+            )
             if response:
-        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
                 try:
                     db_manager.delete_tournament(self.current_tournament_id)
                     self.current_tournament_id = None
@@ -178,12 +180,12 @@ class MainWindow:
                     messagebox.showerror("Erreur",
                                          f"Erreur lors de la suppression: {str(e)}")
 
-                db_manager.delete_tournament(self.current_tournament_id)
-                self.load_tournaments()
+                # Réinitialiser la sélection post-suppression
                 self.tournament_combo.set('')
                 self.current_tournament_id = None
                 self.refresh_all_widgets()
-        main
+
+            
     
     def on_tournament_change(self, event=None):
         """Appelé quand le tournoi sélectionné change"""
