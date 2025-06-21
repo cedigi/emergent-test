@@ -4,7 +4,7 @@ Affiche les matchs et permet la saisie des scores
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from store import db_manager
 from tournament import TournamentManager
 
@@ -216,10 +216,26 @@ class MatchWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucun match sélectionné")
             return
-        
+
         match_id = selection[0]
-        # TODO: Implémenter le changement de terrain
-        messagebox.showinfo("Info", "Fonctionnalité de changement de terrain à implémenter")
+        try:
+            current_values = self.matches_tree.item(match_id, 'values')
+            initial_court = current_values[0] if current_values else ''
+            new_court = simpledialog.askinteger(
+                "Changer le terrain",
+                "Nouveau numéro de terrain:",
+                initialvalue=initial_court,
+                parent=self.parent,
+                minvalue=1
+            )
+            if new_court is None:
+                return
+
+            db_manager.update_match_court(match_id, new_court)
+            self.refresh()
+            self.main_window.update_status(f"Terrain mis à jour: {new_court}")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la mise à jour du terrain: {str(e)}")
     
     def refresh(self):
         """Rafraîchit l'affichage des matchs"""
