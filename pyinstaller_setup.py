@@ -1,69 +1,40 @@
 """
 Configuration spécialisée pour PyInstaller
 Assure que toutes les dépendances sont incluses
+Ce fichier sera généré automatiquement par PyInstaller
 """
 
-import os
-import sys
-from pathlib import Path
+# Ce fichier de configuration sera utilisé par PyInstaller
+# Pour l'exécuter, utilisez: pyinstaller pyinstaller_setup.spec
 
-# Ajouter le répertoire de l'application au Python path
-app_dir = Path(__file__).parent
-sys.path.insert(0, str(app_dir))
+# Configuration des imports cachés nécessaires
+hidden_imports = [
+    'tkinter',
+    'tkinter.ttk', 
+    'tkinter.filedialog',
+    'tkinter.messagebox',
+    'sqlite3',
+    'reportlab.pdfgen',
+    'reportlab.lib',
+    'reportlab.platypus',
+    'uuid',
+    'datetime',
+    'json',
+]
 
-# Configuration pour PyInstaller
-a = Analysis(
-    ['main.py'],
-    pathex=[str(app_dir)],
-    binaries=[],
-    datas=[
-        (str(app_dir / 'resources'), 'resources'),
-        (str(app_dir / 'widgets'), 'widgets'),
-    ],
-    hiddenimports=[
-        'tkinter',
-        'tkinter.ttk',
-        'tkinter.filedialog',
-        'tkinter.messagebox',
-        'sqlite3',
-        'reportlab.pdfgen',
-        'reportlab.lib',
-        'reportlab.platypus',
-        'uuid',
-        'datetime',
-        'json',
-    ],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=None,
-    noarchive=False,
-)
+# Données à inclure dans l'exécutable
+datas = [
+    ('resources', 'resources'),
+    ('widgets', 'widgets'),
+]
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+# Configuration pour l'exécutable final
+exe_config = {
+    'name': 'PetanqueManager',
+    'console': False,  # Mode fenêtré
+    'icon': 'resources/logo.ico',  # Si disponible
+    'onefile': True,   # Un seul fichier
+}
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='PetanqueManager',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=str(app_dir / 'resources' / 'logo.ico') if (app_dir / 'resources' / 'logo.ico').exists() else None,
-)
+print("Configuration PyInstaller pour Pétanque Manager")
+print("Utilisez build_exe.py pour créer l'exécutable automatiquement")
