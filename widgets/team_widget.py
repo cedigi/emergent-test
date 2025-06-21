@@ -6,6 +6,7 @@ Permet l'inscription et la gestion des participants
 import tkinter as tk
 from tkinter import ttk, messagebox
 from store import db_manager
+import json
 
 class TeamWidget:
     """Widget pour la gestion des équipes et joueurs"""
@@ -181,7 +182,83 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la modification d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de modification à implémenter")
+
+        # Charger les données de l'équipe
+        with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM teams WHERE id = ?', (team_id,))
+            row = cursor.fetchone()
+
+        if not row:
+            messagebox.showerror("Erreur", "Équipe introuvable")
+            return
+
+        team_data = dict(row)
+        team_data['players'] = json.loads(team_data['players']) if team_data['players'] else []
+
+        dialog = TeamEditDialog(self.parent, team_data)
+        if dialog.result:
+            self.refresh()
+            self.main_window.update_status("Équipe mise à jour")
+
+
+class TeamEditDialog:
+    """Boîte de dialogue pour modifier une équipe"""
+
+    def __init__(self, parent, team_data):
+        self.result = None
+        self.team_data = team_data
+
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Modifier l'équipe")
+        self.dialog.geometry("350x300")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+
+        self.dialog.geometry("+%d+%d" % (parent.winfo_rootx() + 50, parent.winfo_rooty() + 50))
+
+        self.setup_ui()
+        self.dialog.wait_window()
+
+    def setup_ui(self):
+        main_frame = ttk.Frame(self.dialog, padding="20")
+        main_frame.grid(row=0, column=0, sticky='nsew')
+
+        ttk.Label(main_frame, text="Nom de l'équipe:").grid(row=0, column=0, sticky='w', pady=5)
+        self.name_var = tk.StringVar(value=self.team_data.get('name', ''))
+        name_entry = ttk.Entry(main_frame, textvariable=self.name_var, width=30)
+        name_entry.grid(row=1, column=0, columnspan=2, sticky='ew', pady=5)
+
+        ttk.Label(main_frame, text="Joueurs:").grid(row=2, column=0, sticky='w', pady=5)
+        self.player_vars = []
+        players = self.team_data.get('players', [])
+        for i in range(4):
+            ttk.Label(main_frame, text=f"Joueur {i+1}").grid(row=3+i, column=0, sticky='w', pady=2)
+            var = tk.StringVar(value=players[i] if i < len(players) else '')
+            entry = ttk.Entry(main_frame, textvariable=var, width=25)
+            entry.grid(row=3+i, column=1, sticky='w', pady=2)
+            self.player_vars.append(var)
+
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=7, column=0, columnspan=2, pady=10)
+        ttk.Button(button_frame, text="Sauvegarder", command=self.save).grid(row=0, column=0, padx=5)
+        ttk.Button(button_frame, text="Annuler", command=self.dialog.destroy).grid(row=0, column=1, padx=5)
+
+        main_frame.grid_columnconfigure(1, weight=1)
+
+    def save(self):
+        name = self.name_var.get().strip()
+        players = [var.get().strip() for var in self.player_vars if var.get().strip()]
+
+        if not name:
+            messagebox.showerror("Erreur", "Le nom de l'équipe est obligatoire")
+            return
+
+        try:
+            db_manager.update_team(self.team_data['id'], name, players)
+            self.result = True
+            self.dialog.destroy()
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la mise à jour: {str(e)}")

@@ -157,7 +157,7 @@ class DatabaseManager:
                 teams.append(team)
             return teams
     
-    def update_team_stats(self, team_id: str, wins: int = None, losses: int = None, 
+    def update_team_stats(self, team_id: str, wins: int = None, losses: int = None,
                          points_for: int = None, points_against: int = None):
         """Met à jour les statistiques d'une équipe"""
         updates = {}
@@ -174,6 +174,25 @@ class DatabaseManager:
             set_clause = ', '.join([f"{key} = ?" for key in updates.keys()])
             values = list(updates.values()) + [team_id]
             
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(f'''
+                    UPDATE teams SET {set_clause} WHERE id = ?
+                ''', values)
+                conn.commit()
+
+    def update_team(self, team_id: str, name: str = None, players: List[str] = None):
+        """Met à jour le nom et/ou la liste des joueurs d'une équipe"""
+        updates = {}
+        if name is not None:
+            updates['name'] = name
+        if players is not None:
+            updates['players'] = json.dumps(players)
+
+        if updates:
+            set_clause = ', '.join([f"{key} = ?" for key in updates.keys()])
+            values = list(updates.values()) + [team_id]
+
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(f'''
