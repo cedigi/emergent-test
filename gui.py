@@ -135,11 +135,14 @@ class MainWindow:
         tournaments = db_manager.get_all_tournaments()
         tournament_names = [f"{t['name']} ({t['type']})" for t in tournaments]
         self.tournament_combo['values'] = tournament_names
-        
+
         if tournaments:
             self.tournament_combo.current(0)
             self.current_tournament_id = tournaments[0]['id']
             self.on_tournament_change()
+        else:
+            self.current_tournament_id = None
+            self.tournament_combo.set('')
     
     def create_tournament(self):
         """Ouvre la boîte de dialogue pour créer un tournoi"""
@@ -164,11 +167,23 @@ class MainWindow:
             response = messagebox.askyesno("Confirmation",
                                          f"Êtes-vous sûr de vouloir supprimer le tournoi '{tournament['name']}'?")
             if response:
+        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
+                try:
+                    db_manager.delete_tournament(self.current_tournament_id)
+                    self.current_tournament_id = None
+                    self.load_tournaments()
+                    self.refresh_all_widgets()
+                    self.update_status(f"Tournoi '{tournament['name']}' supprimé")
+                except Exception as e:
+                    messagebox.showerror("Erreur",
+                                         f"Erreur lors de la suppression: {str(e)}")
+
                 db_manager.delete_tournament(self.current_tournament_id)
                 self.load_tournaments()
                 self.tournament_combo.set('')
                 self.current_tournament_id = None
                 self.refresh_all_widgets()
+        main
     
     def on_tournament_change(self, event=None):
         """Appelé quand le tournoi sélectionné change"""

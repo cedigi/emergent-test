@@ -172,10 +172,28 @@ class TeamWidget:
             return
 
         team_id = selection[0]
+        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
+        team_name = self.teams_tree.item(team_id, 'values')[0]
+        response = messagebox.askyesno(
+            "Confirmation",
+            f"Supprimer l'équipe '{team_name}' et ses matchs ?"
+        )
+        if response:
+            try:
+                db_manager.delete_team(team_id)
+                self.main_window.refresh_all_widgets()
+                self.main_window.update_status(
+                    f"Équipe '{team_name}' supprimée")
+            except Exception as e:
+                messagebox.showerror("Erreur",
+                                     f"Erreur lors de la suppression: {str(e)}")
+
+
         db_manager.delete_team(team_id)
         self.refresh()
         self.main_window.update_status("Équipe supprimée")
     
+        main
     def edit_team(self):
         """Modifie l'équipe sélectionnée"""
         selection = self.teams_tree.selection()

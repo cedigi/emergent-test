@@ -118,14 +118,18 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(f'''
-                UPDATE tournaments 
+                UPDATE tournaments
                 SET {set_clause}, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ''', values)
             conn.commit()
 
     def delete_tournament(self, tournament_id: str):
+        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
+        """Supprime un tournoi ainsi que ses équipes et matchs"""
+
         """Supprime un tournoi et toutes les donn\xC3\xA9es associ\xC3\xA9es"""
+        main
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM matches WHERE tournament_id = ?', (tournament_id,))
@@ -198,6 +202,8 @@ class DatabaseManager:
                            (team_id, team_id))
             cursor.execute('DELETE FROM teams WHERE id = ?', (team_id,))
             conn.commit()
+        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
+
 
     def update_team(self, team_id: str, name: Optional[str] = None,
                     players: Optional[List[str]] = None):
@@ -220,6 +226,7 @@ class DatabaseManager:
                 UPDATE teams SET {set_clause} WHERE id = ?
             ''', values)
             conn.commit()
+        main
     
     # CRUD pour Matchs
     def create_match(self, tournament_id: str, round_number: int, 
@@ -261,6 +268,13 @@ class DatabaseManager:
                 SET team1_score = ?, team2_score = ?, status = 'finished'
                 WHERE id = ?
             ''', (team1_score, team2_score, match_id))
+            conn.commit()
+
+    def delete_match(self, match_id: str):
+        """Supprime un match"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM matches WHERE id = ?', (match_id,))
             conn.commit()
     
     def get_team_standings(self, tournament_id: str) -> List[Dict]:
