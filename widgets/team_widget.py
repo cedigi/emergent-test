@@ -4,7 +4,7 @@ Permet l'inscription et la gestion des participants
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from store import db_manager
 
 class TeamWidget:
@@ -170,10 +170,11 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la suppression d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de suppression à implémenter")
+        db_manager.delete_team(team_id)
+        self.refresh()
+        self.main_window.update_status("Équipe supprimée")
     
     def edit_team(self):
         """Modifie l'équipe sélectionnée"""
@@ -181,7 +182,29 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la modification d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de modification à implémenter")
+        item = self.teams_tree.item(team_id)
+        current_name = item['values'][0]
+        current_players = item['values'][1]
+
+        new_name = simpledialog.askstring("Nom de l'équipe",
+                                         "Nouveau nom:",
+                                         initialvalue=current_name,
+                                         parent=self.parent)
+        if new_name is None:
+            return
+
+        players_str = simpledialog.askstring(
+            "Joueurs",
+            "Liste des joueurs (séparés par des virgules):",
+            initialvalue=current_players,
+            parent=self.parent
+        )
+        if players_str is None:
+            return
+
+        players_list = [p.strip() for p in players_str.split(',') if p.strip()]
+        db_manager.update_team(team_id, name=new_name, players=players_list)
+        self.refresh()
+        self.main_window.update_status("Équipe modifiée")
