@@ -123,6 +123,15 @@ class DatabaseManager:
                 WHERE id = ?
             ''', values)
             conn.commit()
+
+    def delete_tournament(self, tournament_id: str):
+        """Supprime un tournoi et toutes les donn\xC3\xA9es associ\xC3\xA9es"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM matches WHERE tournament_id = ?', (tournament_id,))
+            cursor.execute('DELETE FROM teams WHERE tournament_id = ?', (tournament_id,))
+            cursor.execute('DELETE FROM tournaments WHERE id = ?', (tournament_id,))
+            conn.commit()
     
     # CRUD pour Équipes
     def create_team(self, tournament_id: str, name: str, players: List[str]) -> str:
