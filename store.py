@@ -217,10 +217,21 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                UPDATE matches 
+                UPDATE matches
                 SET team1_score = ?, team2_score = ?, status = 'finished'
                 WHERE id = ?
             ''', (team1_score, team2_score, match_id))
+            conn.commit()
+
+    def update_match_court(self, match_id: str, court_number: int):
+        """Met à jour le numéro de terrain d'un match"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE matches
+                SET court_number = ?
+                WHERE id = ?
+            ''', (court_number, match_id))
             conn.commit()
     
     def get_team_standings(self, tournament_id: str) -> List[Dict]:
