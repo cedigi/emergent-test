@@ -6,48 +6,53 @@ Point d'entrée principal de l'application
 
 import sys
 import os
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
+import tkinter as tk
+from tkinter import ttk
 from gui import MainWindow
-
-def setup_high_dpi():
-    """Configure l'application pour les écrans haute résolution"""
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-
-def load_stylesheet(app, theme='light'):
-    """Charge la feuille de style selon le thème"""
-    theme_file = f'styles/{theme}_theme.qss'
-    if os.path.exists(theme_file):
-        with open(theme_file, 'r', encoding='utf-8') as f:
-            app.setStyleSheet(f.read())
 
 def main():
     """Fonction principale de l'application"""
-    # Configuration haute DPI
-    setup_high_dpi()
+    # Création de la fenêtre racine
+    root = tk.Tk()
+    root.title("Pétanque Manager v1.0")
+    root.geometry("1200x800")
     
-    # Création de l'application
-    app = QApplication(sys.argv)
-    app.setApplicationName("Pétanque Manager")
-    app.setApplicationVersion("1.0.0")
-    app.setOrganizationName("Pétanque Manager")
-    
-    # Chargement du thème par défaut
-    load_stylesheet(app, 'light')
+    # Configuration pour les écrans haute résolution
+    try:
+        root.tk.call('tk', 'scaling', 1.2)
+    except tk.TclError:
+        pass  # Ignore si la commande n'est pas supportée
     
     # Icône de l'application
     icon_path = 'resources/logo.png'
     if os.path.exists(icon_path):
-        app.setWindowIcon(QIcon(icon_path))
+        try:
+            root.iconphoto(True, tk.PhotoImage(file=icon_path))
+        except tk.TclError:
+            pass  # Ignore si l'icône ne peut pas être chargée
     
-    # Création et affichage de la fenêtre principale
-    window = MainWindow()
-    window.show()
+    # Style moderne
+    style = ttk.Style()
+    style.theme_use('clam')  # Thème moderne
+    
+    # Configuration des couleurs personnalisées
+    style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
+    style.configure('Header.TLabel', font=('Arial', 12, 'bold'))
+    style.configure('Custom.Treeview', rowheight=25)
+    
+    # Création et configuration de la fenêtre principale
+    app = MainWindow(root)
+    
+    # Centrer la fenêtre
+    root.update_idletasks()
+    width = root.winfo_width()
+    height = root.winfo_height()
+    x = (root.winfo_screenwidth() // 2) - (width // 2)
+    y = (root.winfo_screenheight() // 2) - (height // 2)
+    root.geometry(f'{width}x{height}+{x}+{y}')
     
     # Lancement de la boucle d'événements
-    sys.exit(app.exec_())
+    root.mainloop()
 
 if __name__ == '__main__':
     main()
