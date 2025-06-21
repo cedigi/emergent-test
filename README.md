@@ -173,7 +173,7 @@ L'application affiche les erreurs dans la barre de statut et via des boîtes de 
 
 ## 📝 Licence
 
-Application développée pour la gestion de tournois de pétanque.
+Cette application est distribuée sous la licence MIT. Consultez le fichier [LICENSE](LICENSE) pour plus d'informations.
 
 ## 🏆 Crédits
 
