@@ -194,6 +194,10 @@ class DatabaseManager:
                 ''', values)
                 conn.commit()
 
+        codex/ajouter-méthode-update_team-à-databasemanager
+    def update_team(self, team_id: str, name: str = None, players: List[str] = None):
+        """Met à jour le nom et/ou la liste des joueurs d'une équipe"""
+
     def delete_team(self, team_id: str):
         """Supprime une équipe et ses matchs associés"""
         with self.get_connection() as conn:
@@ -208,11 +212,24 @@ class DatabaseManager:
     def update_team(self, team_id: str, name: Optional[str] = None,
                     players: Optional[List[str]] = None):
         """Met à jour le nom et/ou les joueurs d'une équipe"""
+        main
         updates = {}
         if name is not None:
             updates['name'] = name
         if players is not None:
             updates['players'] = json.dumps(players)
+
+        codex/ajouter-méthode-update_team-à-databasemanager
+        if updates:
+            set_clause = ', '.join([f"{key} = ?" for key in updates.keys()])
+            values = list(updates.values()) + [team_id]
+
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(f'''
+                    UPDATE teams SET {set_clause} WHERE id = ?
+                ''', values)
+                conn.commit()
 
         if not updates:
             return
@@ -226,6 +243,7 @@ class DatabaseManager:
                 UPDATE teams SET {set_clause} WHERE id = ?
             ''', values)
             conn.commit()
+        main
         main
     
     # CRUD pour Matchs
