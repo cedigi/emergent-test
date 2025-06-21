@@ -4,7 +4,7 @@ Permet l'inscription et la gestion des participants
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from store import db_manager
 import json
 
@@ -171,11 +171,30 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la suppression d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de suppression à implémenter")
+        codex/étendre-databasemanager-avec-delete_team-et-delete_tournamen
+        team_name = self.teams_tree.item(team_id, 'values')[0]
+        response = messagebox.askyesno(
+            "Confirmation",
+            f"Supprimer l'équipe '{team_name}' et ses matchs ?"
+        )
+        if response:
+            try:
+                db_manager.delete_team(team_id)
+                self.main_window.refresh_all_widgets()
+                self.main_window.update_status(
+                    f"Équipe '{team_name}' supprimée")
+            except Exception as e:
+                messagebox.showerror("Erreur",
+                                     f"Erreur lors de la suppression: {str(e)}")
+
+
+        db_manager.delete_team(team_id)
+        self.refresh()
+        self.main_window.update_status("Équipe supprimée")
     
+        main
     def edit_team(self):
         """Modifie l'équipe sélectionnée"""
         selection = self.teams_tree.selection()
@@ -184,6 +203,7 @@ class TeamWidget:
             return
 
         team_id = selection[0]
+        codex/ajouter-méthode-update_team-à-databasemanager
 
         # Charger les données de l'équipe
         with db_manager.get_connection() as conn:
@@ -262,3 +282,29 @@ class TeamEditDialog:
             self.dialog.destroy()
         except Exception as e:
             messagebox.showerror("Erreur", f"Erreur lors de la mise à jour: {str(e)}")
+
+        item = self.teams_tree.item(team_id)
+        current_name = item['values'][0]
+        current_players = item['values'][1]
+
+        new_name = simpledialog.askstring("Nom de l'équipe",
+                                         "Nouveau nom:",
+                                         initialvalue=current_name,
+                                         parent=self.parent)
+        if new_name is None:
+            return
+
+        players_str = simpledialog.askstring(
+            "Joueurs",
+            "Liste des joueurs (séparés par des virgules):",
+            initialvalue=current_players,
+            parent=self.parent
+        )
+        if players_str is None:
+            return
+
+        players_list = [p.strip() for p in players_str.split(',') if p.strip()]
+        db_manager.update_team(team_id, name=new_name, players=players_list)
+        self.refresh()
+        self.main_window.update_status("Équipe modifiée")
+        main
