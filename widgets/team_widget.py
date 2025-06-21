@@ -5,6 +5,7 @@ Permet l'inscription et la gestion des participants
 
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter import simpledialog
 from store import db_manager
 
 class TeamWidget:
@@ -170,18 +171,51 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la suppression d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de suppression à implémenter")
-    
+        team_name = self.teams_tree.item(team_id, 'values')[0]
+        if messagebox.askyesno("Confirmation",
+                               f"Supprimer l'équipe '{team_name}' ?"):
+            try:
+                db_manager.delete_team(team_id)
+                self.refresh()
+                self.main_window.update_status("Équipe supprimée")
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur lors de la suppression: {str(e)}")
+
     def edit_team(self):
         """Modifie l'équipe sélectionnée"""
         selection = self.teams_tree.selection()
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la modification d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de modification à implémenter")
+        teams = db_manager.get_teams_by_tournament(self.main_window.current_tournament_id)
+        team = next((t for t in teams if t['id'] == team_id), None)
+        if not team:
+            messagebox.showerror("Erreur", "Équipe introuvable")
+            return
+
+        new_name = simpledialog.askstring("Nom de l'équipe",
+                                          "Modifier le nom de l'équipe:",
+                                          initialvalue=team['name'])
+        if not new_name:
+            return
+
+        players_str = simpledialog.askstring(
+            "Joueurs",
+            "Liste des joueurs séparés par des virgules:",
+            initialvalue=", ".join(team['players'])
+        )
+        if players_str is None:
+            return
+
+        players = [p.strip() for p in players_str.split(',') if p.strip()]
+
+        try:
+            db_manager.update_team(team_id, name=new_name, players=players)
+            self.refresh()
+            self.main_window.update_status("Équipe modifiée")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la modification: {str(e)}")

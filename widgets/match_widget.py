@@ -4,7 +4,7 @@ Affiche les matchs et permet la saisie des scores
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from store import db_manager
 from tournament import TournamentManager
 
@@ -134,9 +134,27 @@ class MatchWidget:
         if not self.main_window.current_tournament_id:
             messagebox.showwarning("Attention", "Aucun tournoi sélectionné")
             return
-        
-        # TODO: Implémenter la validation de tous les scores
-        messagebox.showinfo("Info", "Fonctionnalité de validation à implémenter")
+        errors = []
+        for match_id in self.matches_tree.get_children():
+            values = self.matches_tree.item(match_id, 'values')
+            try:
+                score1 = int(values[2])
+                score2 = int(values[3])
+            except (ValueError, TypeError):
+                errors.append(match_id)
+                continue
+
+            try:
+                self.tournament_manager.update_match_result(match_id, score1, score2)
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur pour un match: {str(e)}")
+                return
+
+        if errors:
+            messagebox.showwarning("Attention", "Scores invalides pour certains matchs")
+
+        self.refresh()
+        self.main_window.update_status("Scores validés")
     
     def on_round_change(self, event=None):
         """Appelé quand le tour sélectionné change"""
@@ -216,10 +234,31 @@ class MatchWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucun match sélectionné")
             return
-        
+
         match_id = selection[0]
-        # TODO: Implémenter le changement de terrain
-        messagebox.showinfo("Info", "Fonctionnalité de changement de terrain à implémenter")
+        current_values = self.matches_tree.item(match_id, 'values')
+        current_court = current_values[0]
+
+        try:
+            current_court_int = int(current_court)
+        except (ValueError, TypeError):
+            current_court_int = None
+
+        new_court = simpledialog.askinteger("Changer le terrain",
+                                            "Nouveau numéro de terrain:",
+                                            initialvalue=current_court_int,
+                                            minvalue=1)
+        if new_court is None:
+            return
+
+        with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE matches SET court_number = ? WHERE id = ?',
+                           (new_court, match_id))
+            conn.commit()
+
+        self.refresh()
+        self.main_window.update_status("Terrain mis à jour")
     
     def refresh(self):
         """Rafraîchit l'affichage des matchs"""

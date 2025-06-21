@@ -123,6 +123,21 @@ class DatabaseManager:
                 WHERE id = ?
             ''', values)
             conn.commit()
+
+    def delete_tournament(self, tournament_id: str):
+        """Supprime un tournoi ainsi que ses équipes et matchs associés"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # Supprimer les matchs associés
+            cursor.execute('DELETE FROM matches WHERE tournament_id = ?',
+                           (tournament_id,))
+            # Supprimer les équipes associées
+            cursor.execute('DELETE FROM teams WHERE tournament_id = ?',
+                           (tournament_id,))
+            # Supprimer le tournoi
+            cursor.execute('DELETE FROM tournaments WHERE id = ?',
+                           (tournament_id,))
+            conn.commit()
     
     # CRUD pour Équipes
     def create_team(self, tournament_id: str, name: str, players: List[str]) -> str:
@@ -156,6 +171,37 @@ class DatabaseManager:
                 team['players'] = json.loads(team['players']) if team['players'] else []
                 teams.append(team)
             return teams
+
+    def update_team(self, team_id: str, **kwargs):
+        """Met à jour une équipe"""
+        if not kwargs:
+            return
+
+        updates = {}
+        for key, value in kwargs.items():
+            if key == 'players' and isinstance(value, list):
+                updates[key] = json.dumps(value)
+            else:
+                updates[key] = value
+
+        set_clause = ', '.join([f"{key} = ?" for key in updates.keys()])
+        values = list(updates.values()) + [team_id]
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'''UPDATE teams SET {set_clause} WHERE id = ?''', values)
+            conn.commit()
+
+    def delete_team(self, team_id: str):
+        """Supprime une équipe et ses matchs associés"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # Supprimer les matchs où l'équipe intervient
+            cursor.execute('DELETE FROM matches WHERE team1_id = ? OR team2_id = ?',
+                           (team_id, team_id))
+            # Supprimer l'équipe
+            cursor.execute('DELETE FROM teams WHERE id = ?', (team_id,))
+            conn.commit()
     
     def update_team_stats(self, team_id: str, wins: int = None, losses: int = None, 
                          points_for: int = None, points_against: int = None):

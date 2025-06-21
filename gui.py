@@ -161,11 +161,17 @@ class MainWindow:
         
         tournament = db_manager.get_tournament(self.current_tournament_id)
         if tournament:
-            response = messagebox.askyesno("Confirmation", 
+            response = messagebox.askyesno("Confirmation",
                                          f"Êtes-vous sûr de vouloir supprimer le tournoi '{tournament['name']}'?")
             if response:
-                # TODO: Implémenter la suppression
-                messagebox.showinfo("Info", "Fonctionnalité de suppression à implémenter")
+                try:
+                    db_manager.delete_tournament(self.current_tournament_id)
+                    self.current_tournament_id = None
+                    self.load_tournaments()
+                    self.refresh_all_widgets()
+                    self.update_status("Tournoi supprimé")
+                except Exception as e:
+                    messagebox.showerror("Erreur", f"Erreur lors de la suppression: {str(e)}")
     
     def on_tournament_change(self, event=None):
         """Appelé quand le tournoi sélectionné change"""
