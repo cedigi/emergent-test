@@ -18,7 +18,10 @@ class DatabaseManager:
     
     def get_connection(self):
         """Retourne une connexion à la base de données"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(
+            self.db_path,
+            uri=self.db_path.startswith("file:")
+        )
         conn.row_factory = sqlite3.Row  # Pour accéder aux colonnes par nom
         return conn
     
@@ -118,10 +121,19 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(f'''
-                UPDATE tournaments 
+                UPDATE tournaments
                 SET {set_clause}, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ''', values)
+            conn.commit()
+
+    def delete_tournament(self, tournament_id: str):
+        """Supprime un tournoi et toutes les données associées"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM matches WHERE tournament_id = ?', (tournament_id,))
+            cursor.execute('DELETE FROM teams WHERE tournament_id = ?', (tournament_id,))
+            cursor.execute('DELETE FROM tournaments WHERE id = ?', (tournament_id,))
             conn.commit()
     
     # CRUD pour Équipes
@@ -157,7 +169,7 @@ class DatabaseManager:
                 teams.append(team)
             return teams
     
-    def update_team_stats(self, team_id: str, wins: int = None, losses: int = None, 
+    def update_team_stats(self, team_id: str, wins: int = None, losses: int = None,
                          points_for: int = None, points_against: int = None):
         """Met à jour les statistiques d'une équipe"""
         updates = {}
@@ -180,6 +192,39 @@ class DatabaseManager:
                     UPDATE teams SET {set_clause} WHERE id = ?
                 ''', values)
                 conn.commit()
+
+    def update_team(self, team_id: str, name: Optional[str] = None,
+                    players: Optional[List[str]] = None):
+        """Met à jour le nom ou la liste des joueurs d'une équipe"""
+        updates = []
+        values = []
+        if name is not None:
+            updates.append("name = ?")
+            values.append(name)
+        if players is not None:
+            updates.append("players = ?")
+            values.append(json.dumps(players))
+        if not updates:
+            return
+        values.append(team_id)
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"UPDATE teams SET {', '.join(updates)} WHERE id = ?",
+                values
+            )
+            conn.commit()
+
+    def delete_team(self, team_id: str):
+        """Supprime une équipe et ses matchs associés"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'DELETE FROM matches WHERE team1_id = ? OR team2_id = ?',
+                (team_id, team_id)
+            )
+            cursor.execute('DELETE FROM teams WHERE id = ?', (team_id,))
+            conn.commit()
     
     # CRUD pour Matchs
     def create_match(self, tournament_id: str, round_number: int, 
@@ -217,10 +262,20 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                UPDATE matches 
+                UPDATE matches
                 SET team1_score = ?, team2_score = ?, status = 'finished'
                 WHERE id = ?
             ''', (team1_score, team2_score, match_id))
+            conn.commit()
+
+    def update_match_court(self, match_id: str, court_number: int):
+        """Met à jour le terrain d'un match"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'UPDATE matches SET court_number = ? WHERE id = ?',
+                (court_number, match_id)
+            )
             conn.commit()
     
     def get_team_standings(self, tournament_id: str) -> List[Dict]:
