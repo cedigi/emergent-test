@@ -170,11 +170,23 @@ class TeamWidget:
         if not selection:
             messagebox.showwarning("Attention", "Aucune équipe sélectionnée")
             return
-        
+
         team_id = selection[0]
-        # TODO: Implémenter la suppression d'équipe
-        messagebox.showinfo("Info", "Fonctionnalité de suppression à implémenter")
-    
+        team_name = self.teams_tree.item(team_id, 'values')[0]
+        response = messagebox.askyesno(
+            "Confirmation",
+            f"Supprimer l'équipe '{team_name}' et ses matchs ?"
+        )
+        if response:
+            try:
+                db_manager.delete_team(team_id)
+                self.main_window.refresh_all_widgets()
+                self.main_window.update_status(
+                    f"Équipe '{team_name}' supprimée")
+            except Exception as e:
+                messagebox.showerror("Erreur",
+                                     f"Erreur lors de la suppression: {str(e)}")
+
     def edit_team(self):
         """Modifie l'équipe sélectionnée"""
         selection = self.teams_tree.selection()
