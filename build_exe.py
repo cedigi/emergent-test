@@ -51,6 +51,9 @@ def create_exe():
     # Ajouter les données nécessaires
     cmd.extend([
         "--add-data", "resources;resources",  # Inclure le dossier resources
+        "--hidden-import=reportlab.lib",
+        "--hidden-import=reportlab.platypus",
+        "--hidden-import=reportlab.pdfgen",
     ])
     
     try:
