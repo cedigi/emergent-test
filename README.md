@@ -48,6 +48,11 @@ Application desktop de gestion de tournois de pétanque développée en Python a
 pip install -r requirements.txt
 ```
 
+Copiez le fichier d'exemple d'environnement puis personnalisez-le :
+```bash
+cp backend/.env.example backend/.env
+```
+
 ### Lancement de l'Application
 ```bash
 python main.py
