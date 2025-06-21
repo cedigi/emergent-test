@@ -1,0 +1,32 @@
+Pétanque Manager v1.0.0
+
+Date de release: Mars 2025
+Développé avec Python 3.11
+
+Fonctionnalités principales:
+- Gestion complète de tournois de pétanque
+- Support des formats: tête-à-tête, doublette, triplette, quadrette, mêlée
+- Interface graphique moderne avec tkinter
+- Base de données SQLite intégrée
+- Export PDF des classements
+- Algorithmes d'appariement intelligents
+- Gestion automatique des équipes BYE
+- Thèmes clair et sombre
+
+Architecture:
+- main.py: Point d'entrée principal
+- gui.py: Interface graphique principale
+- store.py: Gestion de la base de données
+- tournament.py: Logique de tournoi
+- widgets/: Composants d'interface spécialisés
+
+Dépendances:
+- Python 3.8+
+- tkinter (interface graphique)
+- reportlab (export PDF)
+- sqlite3 (base de données)
+
+Build info:
+- Packageable avec PyInstaller
+- Compatible Windows/Linux/macOS
+- Taille approximative de l'exécutable: 15-20 MB
