@@ -12,7 +12,8 @@ from pathlib import Path
 def install_pyinstaller():
     """Installe PyInstaller si nécessaire"""
     try:
-        import PyInstaller
+        import importlib
+        importlib.import_module("PyInstaller.__main__")
         print("✓ PyInstaller déjà installé")
         return True
     except ImportError:
@@ -31,15 +32,16 @@ def create_exe():
     
     # Paramètres PyInstaller
     cmd = [
-        sys.executable, "-m", "PyInstaller",
-        "--onefile",                    # Un seul fichier exécutable
-        "--windowed",                   # Mode fenêtré (pas de console)
-        "--name=PetanqueManager",       # Nom de l'exécutable
-        "--distpath=dist",              # Dossier de sortie
-        "--workpath=build",             # Dossier de travail
-        "--specpath=.",                 # Dossier du fichier .spec
-        "main.py"                       # Fichier principal
-    ]
+    sys.executable, "-m", "PyInstaller",
+    "--onefile",
+    "--windowed",
+    "--name=PetanqueManager",
+    "--distpath=dist",
+    "--workpath=build",
+    "--specpath=.",
+    "main.py"
+]
+
     
     # Ajouter l'icône si disponible
     icon_path = Path("resources/logo.ico")

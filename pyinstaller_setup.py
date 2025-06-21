@@ -22,6 +22,7 @@ hidden_imports = [
     'json',
 ]
 
+
 # Données à inclure dans l'exécutable
 datas = [
     ('resources', 'resources'),
